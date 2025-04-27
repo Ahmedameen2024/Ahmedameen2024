@@ -33,8 +33,8 @@ class _TableCollagedataState extends State<TablGriduintdata> {
                       context: context,
                       title: "Add Graduants",
                       controller: TextEditingController(),
-                      admin: TextEditingController(),
-                      password: TextEditingController());
+                      // admin: TextEditingController(),
+                      description: TextEditingController());
                 }),
           ),
           Divider(thickness: 0.5, color: Colors.green),
@@ -60,7 +60,7 @@ class _TableCollagedataState extends State<TablGriduintdata> {
                         !AppResponsive.isTablet(context))
                       tableHedar('Phone'),
                     tableHedar('Collage'),
-                    tableHedar('Deparment'),
+                    // tableHedar('Deparment'),
                     tableHedar('Address'),
                     tableHedar('Opreations'),
                   ]),
@@ -180,11 +180,11 @@ class _TableCollagedataState extends State<TablGriduintdata> {
                           TextButton(
                               onPressed: () {
                                 Addbutton.ShowCustomDilalog(
-                                    context: context,
-                                    title: 'Edit collage or Admin',
-                                    controller: TextEditingController(),
-                                    admin: TextEditingController(),
-                                    password: TextEditingController());
+                                  context: context,
+                                  title: 'Add collage',
+                                  controller: TextEditingController(),
+                                  description: TextEditingController(),
+                                );
                               },
                               child: Text('oke')),
                           TextButton(

@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class VerificationScreen extends StatelessWidget {
+  static const String verificationScreenRoute =
+      'VerificationScreen'; // أضف هذا السطر
+
   const VerificationScreen({super.key});
 
   @override
@@ -48,14 +51,14 @@ class VerificationScreen extends StatelessWidget {
             // زر التحديث والتحقق
             ElevatedButton(
               onPressed: () async {
-                final Users = FirebaseAuth.instance.currentUser;
-                if (Users != null) {
-                  await Users.reload(); // تحديث حالة المستخدم
-                  final updatedUser = FirebaseAuth.instance.currentUser;
+                final user = FirebaseAuth.instance.currentUser;
+                if (user != null) {
+                  await user.reload(); // تحديث حالة المستخدم
+                  final updateduser = FirebaseAuth.instance.currentUser;
 
-                  if (updatedUser != null && updatedUser.emailVerified) {
+                  if (updateduser != null && updateduser.emailVerified) {
                     // إذا تم التحقق، انتقل إلى الشاشة الرئيسية
-                    Navigator.pushReplacementNamed(context, 'TableCollagedata');
+                    Navigator.pushReplacementNamed(context, 'WelcomScreen');
                     // Navigator.pushReplacementNamed(context, 'HomeScreen'); WelcomScreen
                   } else {
                     // إذا لم يتم التحقق، عرض رسالة

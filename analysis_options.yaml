@@ -14,6 +14,7 @@ analyzer:
     camel_case_types: ignore
     depend_on_referenced_packages: ignore ignore ignore
     no_leading_underscores_for_local_identifiers: ignore
+    unnecessary_cast: ignore
     unnecessary_const: ignore
     unused_import: ignore
     unused_local_variable: ignore ignore

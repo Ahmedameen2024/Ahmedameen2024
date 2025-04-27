@@ -186,11 +186,11 @@ class _ResearchState extends State<Research> {
                           TextButton(
                               onPressed: () {
                                 Addbutton.ShowCustomDilalog(
-                                    context: context,
-                                    title: 'Edit collage or Admin',
-                                    controller: TextEditingController(),
-                                    admin: TextEditingController(),
-                                    password: TextEditingController());
+                                  context: context,
+                                  title: 'Add collage',
+                                  controller: TextEditingController(),
+                                  description: TextEditingController(),
+                                );
                               },
                               child: Text('oke')),
                           TextButton(
