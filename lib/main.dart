@@ -1,9 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:device_preview/device_preview.dart';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:provider/provider.dart';
+
 import 'package:flutter_application_10/pags/tostion.dart';
 import 'package:flutter_application_10/pags/widget/chat_screen.dart';
 import 'package:flutter_application_10/pags/sin_in.dart';
@@ -12,34 +17,45 @@ import 'package:flutter_application_10/pags/sin_ub.dart';
 import 'package:flutter_application_10/pags/widget/research.dart';
 import 'package:flutter_application_10/pags/widget/table_collageData.dart';
 import 'package:flutter_application_10/pags/widget/table_departmentData.dart';
-import 'firebase_options.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:email_validator/email_validator.dart';
 
 import 'package:flutter_application_10/control/menu_controller.dart';
 import 'package:flutter_application_10/pags/home_page.dart';
 
 import 'package:flutter_application_10/pags/welcom_screen.dart';
 import 'package:flutter_application_10/shard/app_colors.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_application_10/pags/my_botton.dart';
-
 import 'package:flutter_application_10/pags/widget/sidebarmenu.dart';
 import 'package:flutter_application_10/pags/widget/hederbardashbord.dart';
 
+// void main() async {
+//   FlutterError.onError = (details) {
+//     FlutterError.presentError(details);
+//     if (kReleaseMode) exit(1);
+//   };
+//   await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await Firebase.initializeApp(
+//     options: DefaultFirebaseOptions.currentPlatform, // تأكد من استيراد الملف
+//   );
+//   runApp(const MyApp());
+// }
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+  runApp(const MyApp());
+  // 2. تهيئة Firebase الأساسية
+
+  // 3. تهيئة إعدادات المصادقة (بعد التهيئة الأساسية)
+  // 1. تهيئة معالجة الأخطاء أولاً
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
     if (kReleaseMode) exit(1);
   };
 
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await FirebaseAuth.instance
-      .setPersistence(Persistence.LOCAL); // حفظ الجلسة محليًا
+  // 4. تشغيل التطبيق (يجب أن يكون آخر سطر)
   runApp(const MyApp());
 }
 
@@ -66,20 +82,6 @@ class MyApp extends StatelessWidget {
             const VerificationScreen(),
       },
 
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasData && snapshot.data!.emailVerified) {
-            return const Test();
-          } else {
-            return SinIn();
-          }
-        },
-      ),
-
       // home: StreamBuilder<User?>(
       //   stream: FirebaseAuth.instance.authStateChanges(),
       //   builder: (context, snapshot) {
@@ -87,12 +89,26 @@ class MyApp extends StatelessWidget {
       //       return const Center(child: CircularProgressIndicator());
       //     }
       //     if (snapshot.hasData && snapshot.data!.emailVerified) {
-      //       return TableCollagedata();
+      //       return const Test();
       //     } else {
       //       return SinIn();
       //     }
       //   },
       // ),
+
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasData && snapshot.data!.emailVerified) {
+            return TableCollagedata();
+          } else {
+            return SinIn();
+          }
+        },
+      ),
     );
   }
 }
@@ -170,22 +186,22 @@ class _TestState extends State<Test> {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
+// class MyHomePage extends StatefulWidget {
+//   const MyHomePage({super.key, required this.title});
+//   final String title;
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+//   @override
+//   State<MyHomePage> createState() => _MyHomePageState();
+// }
 
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: SafeArea(child: SignUp()),
-    );
-  }
-}
+// class _MyHomePageState extends State<MyHomePage> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Scaffold(
+//       body: SafeArea(child: SignUp()),
+//     );
+//   }
+// }
 
 
 

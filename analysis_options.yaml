@@ -10,14 +10,15 @@
 analyzer:
   errors:
     avoid_function_literals_in_foreach_calls: ignore
-    avoid_print: ignore ignore ignore ignore
+    avoid_print: ignore
     camel_case_types: ignore
-    depend_on_referenced_packages: ignore ignore ignore
+    depend_on_referenced_packages: ignore
+    duplicate_import: ignore
     no_leading_underscores_for_local_identifiers: ignore
     unnecessary_cast: ignore
     unnecessary_const: ignore
     unused_import: ignore
-    unused_local_variable: ignore ignore
+    unused_local_variable: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
