@@ -6,6 +6,7 @@ import 'package:flutter_application_10/pags/my_botton.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_10/pags/widget/table_Collagedata.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:flutter_application_10/pags/widget/create_admin.dart';
 
 class SinIn extends StatefulWidget {
   static const String sinInScreenRout = 'SinIn';
@@ -42,8 +43,9 @@ class _SinInState extends State<SinIn> {
         return;
       }
 
-      Navigator.pushReplacementNamed(
-          context, TableCollagedata.TableCollagedataRout);
+      // Navigator.pushReplacementNamed(
+      Navigator.pushNamed(context, '/create-admin');
+      // context, TableCollagedata.TableCollagedataRout);
     } on FirebaseAuthException catch (e) {
       _handleAuthError(e, context);
     } finally {

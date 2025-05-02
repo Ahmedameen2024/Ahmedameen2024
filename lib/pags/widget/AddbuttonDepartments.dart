@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-class Addbutton {
+class AddbuttonDepartments {
   // ignore: non_constant_identifier_names
   static void ShowCustomDilalog({
     required BuildContext context,
@@ -25,6 +25,7 @@ class Addbutton {
     final TextEditingController descriptionController = TextEditingController();
     File? _pickedImage;
     Uint8List? _webImageBytes; // متغير للويب
+    String? selectedCollegeId; // متغير لتخزين id الكلية المختارة
 
     Future<void> _pickImage() async {
       final pickedFile =
@@ -41,13 +42,19 @@ class Addbutton {
     void _saveData() async {
       try {
         print('بدأ الحفظ');
+        if (selectedCollegeId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('يرجى اختيار الكلية')),
+          );
+          return;
+        }
         String? imageUrl;
 
         if (!kIsWeb && _pickedImage != null) {
           print('رفع صورة للهاتف...');
           final ref = FirebaseStorage.instance
               .ref()
-              .child('colleges_images')
+              .child('Departments_images')
               .child('${DateTime.now().millisecondsSinceEpoch}.png');
           await ref.putFile(_pickedImage!);
           imageUrl = await ref.getDownloadURL();
@@ -56,18 +63,19 @@ class Addbutton {
           print('رفع صورة للويب...');
           final ref = FirebaseStorage.instance
               .ref()
-              .child('colleges_images')
+              .child('Departments_images')
               .child('${DateTime.now().millisecondsSinceEpoch}.png');
           await ref.putData(_webImageBytes!);
           imageUrl = await ref.getDownloadURL();
           print('تم رفع الصورة للويب');
         }
 
-        print('سيتم حفظ بيانات الكلية');
-        await _firestore.collection('Colleges').add({
+        print('سيتم حفظ بيانات القسم');
+        await _firestore.collection('Departments').add({
           'name': controller.text,
           'description': descriptionController.text,
           'imageUrl': imageUrl ?? '',
+          'collegeId': selectedCollegeId, // إضافة id الكلية
           'timestamp': FieldValue.serverTimestamp(),
         });
 
@@ -104,7 +112,7 @@ class Addbutton {
                   TextFormField(
                     controller: controller,
                     decoration: const InputDecoration(
-                      labelText: 'اسم الكلية',
+                      labelText: 'اسم القسم',
                       contentPadding:
                           EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                       border: OutlineInputBorder(
@@ -118,13 +126,37 @@ class Addbutton {
                     maxLines: 6,
                     keyboardType: TextInputType.multiline,
                     decoration: const InputDecoration(
-                      labelText: 'نبذة تعريفية عن الكلية',
+                      labelText: 'نبذة تعريفية عن القسم',
                       contentPadding:
                           EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(20)),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 10),
+                  // اختيار الكلية
+                  const Text('اختر الكلية:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  StreamBuilder<QuerySnapshot>(
+                    stream: _firestore.collection('Colleges').snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData)
+                        return const CircularProgressIndicator();
+                      final docs = snapshot.data!.docs;
+                      if (docs.isEmpty) return const Text('لا توجد كليات');
+                      return Column(
+                        children: docs.map((doc) {
+                          return RadioListTile<String>(
+                            title: Text(doc['name']),
+                            value: doc.id,
+                            groupValue: selectedCollegeId,
+                            onChanged: (val) =>
+                                setState(() => selectedCollegeId = val),
+                          );
+                        }).toList(),
+                      );
+                    },
                   ),
                   const SizedBox(height: 10),
                   // زر اختيار الصورة
@@ -199,7 +231,7 @@ class Addbutton {
         child: TextFormField(
           controller: nput,
           decoration: const InputDecoration(
-            labelText: 'Name collage',
+            labelText: 'Name Department',
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(20)),

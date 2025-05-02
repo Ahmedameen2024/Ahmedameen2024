@@ -9,6 +9,7 @@ import 'package:flutter_application_10/pags/widget/hederbardashbord.dart';
 import 'package:flutter_application_10/pags/my_botton.dart';
 import 'package:flutter_application_10/shard/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // أضف هذا الاستيراد
+import 'package:firebase_storage/firebase_storage.dart';
 
 class TableCollagedata extends StatefulWidget {
   // ignore: constant_identifier_names
@@ -20,28 +21,6 @@ class TableCollagedata extends StatefulWidget {
 
 class _TableCollagedataState extends State<TableCollagedata> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  List<Map<String, dynamic>> usersList = [];
-  bool usersLoaded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUsers();
-  }
-
-  Future<void> _fetchUsers() async {
-    final usersSnapshot = await _firestore.collection('Users').get();
-    setState(() {
-      usersList = usersSnapshot.docs
-          .map((doc) => {
-                'uid': doc['uid'],
-                'userName': doc['userName'],
-              })
-          .toList();
-      usersLoaded = true;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +73,7 @@ class _TableCollagedataState extends State<TableCollagedata> {
                   children: [
                     tableHedar('collage Name'),
                     tableHedar('description'),
-                    tableHedar('Collage Dean'),
-                    // tableHedar(''),
+                    // احذف عمود المدير
                   ],
                 ),
               ],
@@ -116,8 +94,7 @@ class _TableCollagedataState extends State<TableCollagedata> {
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       DocumentSnapshot doc = snapshot.data!.docs[index];
-                      return _buildCollegeRow(
-                          doc); // استخدم الدالة المخصصة للعرض
+                      return _buildCollegeRow(doc);
                     },
                   );
                 },
@@ -127,82 +104,6 @@ class _TableCollagedataState extends State<TableCollagedata> {
         ),
       ),
     );
-  }
-
-  TableRow tabblRow(
-    context, {
-    name,
-    image,
-    description,
-    dean,
-  }) {
-    return TableRow(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.green, width: 0.5),
-          ),
-        ),
-        children: [
-          Container(
-            margin: EdgeInsets.symmetric(vertical: 15),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(1000),
-                  child: Image.asset(
-                    "$image",
-                    // height: 40,
-                    width: 60,
-                  ),
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                Text(name),
-              ],
-            ),
-          ),
-          Text('$description'),
-          Row(
-            children: [
-              SizedBox(
-                width: 10,
-              ),
-              Text(dean)
-            ],
-          ),
-          Row(
-            children: [
-              IconButton(
-                  onPressed: () {
-                    Editbutton.showAlert(
-                        context: context,
-                        title: 'Edit',
-                        content: Text('Bilalaa dfhjgfsbvs hfhgfjgf ?'),
-                        action: [
-                          TextButton(
-                              onPressed: () {
-                                Addbutton.ShowCustomDilalog(
-                                  context: context,
-                                  title: 'Add collage',
-                                  controller: TextEditingController(),
-                                  description: TextEditingController(),
-                                );
-                              },
-                              child: Text('oke')),
-                          TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('No'))
-                        ]);
-                  },
-                  icon: Icon(Icons.edit)),
-              Icon(Icons.more_vert),
-              IconButton(onPressed: () {}, icon: Icon(Icons.delete))
-            ],
-          )
-        ]);
   }
 
   Widget tableHedar(text) {
@@ -220,47 +121,11 @@ class _TableCollagedataState extends State<TableCollagedata> {
     if (!doc.exists) return SizedBox.shrink();
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-    // ابحث عن اسم المدير بناءً على id_admin
-    String? adminName;
-    if (usersLoaded) {
-      final user = usersList.firstWhere(
-        (u) => u['uid'] == data['id_admin'],
-        orElse: () => {},
-      );
-      adminName = user.isNotEmpty ? user['userName'] : data['id_admin'];
-    } else {
-      adminName = data['id_admin'];
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.blueAccent,
-          child: Text(data['name']?[0] ?? '?'),
-        ),
-        title: Text(data['name'] ?? 'No Name'),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('المشرف: ${adminName ?? 'لا يوجد'}'),
-            Text('نبذة: ${data['description'] ?? ''}'),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _showEditDialog(doc),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => _deleteCollege(doc.id),
-            ),
-          ],
-        ),
-      ),
+    return _ExpandableCollegeRow(
+      data: data,
+      doc: doc,
+      onEdit: _showEditDialog,
+      onDelete: _deleteCollege,
     );
   }
 
@@ -278,8 +143,6 @@ class _TableCollagedataState extends State<TableCollagedata> {
 
     TextEditingController nameController =
         TextEditingController(text: doc['name']);
-    TextEditingController adminController =
-        TextEditingController(text: doc['id_admin']);
     TextEditingController descriptionController =
         TextEditingController(text: doc['description'] ?? '');
 
@@ -292,10 +155,6 @@ class _TableCollagedataState extends State<TableCollagedata> {
           TextFormField(
             controller: nameController,
             decoration: InputDecoration(labelText: 'اسم الكلية'),
-          ),
-          TextFormField(
-            controller: adminController,
-            decoration: InputDecoration(labelText: 'اسم المشرف'),
           ),
           TextFormField(
             controller: descriptionController,
@@ -312,7 +171,6 @@ class _TableCollagedataState extends State<TableCollagedata> {
             try {
               await _firestore.collection('Colleges').doc(doc.id).update({
                 'name': nameController.text,
-                'id_admin': adminController.text,
                 'description': descriptionController.text,
               });
               Navigator.of(context).pop();
@@ -345,7 +203,6 @@ class _TableCollagedataState extends State<TableCollagedata> {
       );
       return;
     }
-    // ... باقي الكود
     try {
       await _firestore.collection('Colleges').doc(docId).delete();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -362,5 +219,146 @@ class _TableCollagedataState extends State<TableCollagedata> {
         ),
       );
     }
+  }
+}
+
+class _ExpandableCollegeRow extends StatefulWidget {
+  final Map<String, dynamic> data;
+  final DocumentSnapshot doc;
+  final Function(DocumentSnapshot) onEdit;
+  final Function(String) onDelete;
+
+  const _ExpandableCollegeRow({
+    required this.data,
+    required this.doc,
+    required this.onEdit,
+    required this.onDelete,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_ExpandableCollegeRow> createState() => _ExpandableCollegeRowState();
+}
+
+class _ExpandableCollegeRowState extends State<_ExpandableCollegeRow>
+    with SingleTickerProviderStateMixin {
+  bool isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final String description = widget.data['description'] ?? '';
+    final lines = description.split('\n');
+    final bool needsReadMore = lines.length > 5;
+    final String shortDescription =
+        needsReadMore ? lines.take(5).join('\n') : description;
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.blue, width: 1.2),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // صورة الكلية
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: widget.data['imageUrl'] != null &&
+                      widget.data['imageUrl'].toString().isNotEmpty
+                  ? CircleAvatar(
+                      backgroundImage: NetworkImage(widget.data['imageUrl']),
+                      radius: 28,
+                    )
+                  : CircleAvatar(
+                      backgroundColor: Colors.blueAccent,
+                      child: Text(widget.data['name']?[0] ?? '?'),
+                      radius: 28,
+                    ),
+            ),
+            // بيانات الكلية (اسم + نبذة)
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.data['name'] ?? 'No Name',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border:
+                            Border.all(color: Colors.blue.shade200, width: 1),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.blue.shade50.withOpacity(0.2),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isExpanded ? description : shortDescription,
+                            maxLines: isExpanded ? null : 5,
+                            overflow: isExpanded
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 15, color: Colors.black87),
+                          ),
+                          if (needsReadMore)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton(
+                                child:
+                                    Text(isExpanded ? 'إخفاء' : 'قراءة المزيد'),
+                                onPressed: () =>
+                                    setState(() => isExpanded = !isExpanded),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(50, 30),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // أزرار التعديل والحذف (ثابتة)
+            Padding(
+              padding: const EdgeInsets.only(top: 12, right: 8, left: 8),
+              child: Column(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () => widget.onEdit(widget.doc),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => widget.onDelete(widget.doc.id),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
