@@ -18,6 +18,68 @@ class _CreateAdminScreenState extends State<CreateAdminScreen> {
   String? selectedCollegeId;
   String? selectedTypeId;
   bool isLoading = false;
+  bool _isAllowed = false;
+  String? _userType;
+  Map<String, dynamic>? _adminData;
+  Map<String, dynamic>? _userData;
+  String? selectedUniversityId;
+  bool isChecking = true;
+  List<String> selectedDepartmentIds = [];
+  String? collageIdForAdmin;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserPermissions();
+  }
+
+  Future<void> _checkUserPermissions() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        isChecking = false;
+        _isAllowed = false;
+      });
+      return;
+    }
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(user.uid)
+        .get();
+    final adminDoc = await FirebaseFirestore.instance
+        .collection('Admain')
+        .doc(user.uid)
+        .get();
+
+    if (!userDoc.exists || !adminDoc.exists) {
+      setState(() {
+        isChecking = false;
+        _isAllowed = false;
+      });
+      return;
+    }
+
+    final adminData = adminDoc.data()!;
+    final typeId = adminData['typeId'];
+    final typeDoc = await FirebaseFirestore.instance
+        .collection('Administration_Type')
+        .doc(typeId)
+        .get();
+    final typeName = typeDoc['Type'];
+
+    if (typeName == 'CollageAdmain') {
+      collageIdForAdmin = adminData['collegeId'];
+    }
+
+    setState(() {
+      _userType = typeName;
+      _adminData = adminData;
+      _userData = userDoc.data();
+      _isAllowed = true;
+      isChecking = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,38 +129,6 @@ class _CreateAdminScreenState extends State<CreateAdminScreen> {
                           val == null || val.isEmpty ? 'مطلوب' : null,
                     ),
                     const SizedBox(height: 20),
-                    const Text('اختر الكلية:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('Colleges')
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData)
-                          return const CircularProgressIndicator();
-                        final docs = snapshot.data!.docs;
-                        if (docs.isEmpty) return const Text('لا توجد كليات');
-                        return ExpansionTile(
-                          title: RadioListTile<String>(
-                            title: Text(docs[0]['name']),
-                            value: docs[0].id,
-                            groupValue: selectedCollegeId,
-                            onChanged: (val) =>
-                                setState(() => selectedCollegeId = val),
-                          ),
-                          children: docs.skip(1).map((doc) {
-                            return RadioListTile<String>(
-                              title: Text(doc['name']),
-                              value: doc.id,
-                              groupValue: selectedCollegeId,
-                              onChanged: (val) =>
-                                  setState(() => selectedCollegeId = val),
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 20),
                     const Text('اختر نوع الإدارة:',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     StreamBuilder<QuerySnapshot>(
@@ -131,17 +161,101 @@ class _CreateAdminScreenState extends State<CreateAdminScreen> {
                         );
                       },
                     ),
+                    const SizedBox(height: 20),
+                    (_userType == 'CollageAdmain')
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('اختر القسم:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('Departments')
+                                    .where('collegeId',
+                                        isEqualTo:
+                                            selectedCollegeId) // أو استخدم collegeId المناسب
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData)
+                                    return const CircularProgressIndicator();
+                                  final docs = snapshot.data!.docs;
+                                  if (docs.isEmpty)
+                                    return const Text('لا توجد أقسام');
+                                  return Column(
+                                    children: docs.map((doc) {
+                                      return CheckboxListTile(
+                                        title: Text(doc['name']),
+                                        value: selectedDepartmentIds
+                                            .contains(doc.id),
+                                        onChanged: (checked) {
+                                          setState(() {
+                                            if (checked == true) {
+                                              selectedDepartmentIds.add(doc.id);
+                                            } else {
+                                              selectedDepartmentIds
+                                                  .remove(doc.id);
+                                            }
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('اختر الكلية:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('Colleges')
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData)
+                                    return const CircularProgressIndicator();
+                                  final docs = snapshot.data!.docs;
+                                  if (docs.isEmpty)
+                                    return const Text('لا توجد كليات');
+                                  return ExpansionTile(
+                                    title: RadioListTile<String>(
+                                      title: Text(docs[0]['name']),
+                                      value: docs[0].id,
+                                      groupValue: selectedCollegeId,
+                                      onChanged: (val) => setState(
+                                          () => selectedCollegeId = val),
+                                    ),
+                                    children: docs.skip(1).map((doc) {
+                                      return RadioListTile<String>(
+                                        title: Text(doc['name']),
+                                        value: doc.id,
+                                        groupValue: selectedCollegeId,
+                                        onChanged: (val) => setState(
+                                            () => selectedCollegeId = val),
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                     const SizedBox(height: 30),
                     ElevatedButton(
                       child: const Text('إنشاء مدير'),
                       onPressed: () async {
                         if (!_formKey.currentState!.validate() ||
-                            selectedCollegeId == null ||
-                            selectedTypeId == null) {
+                            selectedTypeId == null ||
+                            (_userType == 'CollageAdmain'
+                                ? selectedDepartmentIds.isEmpty
+                                : selectedCollegeId == null)) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text(
-                                    'يرجى تعبئة جميع الحقول واختيار الكلية والنوع')),
+                                    'يرجى تعبئة جميع الحقول واختيار القسم أو الكلية والنوع')),
                           );
                           return;
                         }
@@ -175,8 +289,11 @@ class _CreateAdminScreenState extends State<CreateAdminScreen> {
                               .doc(uid)
                               .set({
                             'uid': uid,
-                            'collegeId': selectedCollegeId,
+                            'collegeId': _userType == 'CollageAdmain'
+                                ? collageIdForAdmin
+                                : selectedCollegeId,
                             'typeId': selectedTypeId,
+                            'departments': selectedDepartmentIds,
                             'createdAt': FieldValue.serverTimestamp(),
                           });
 

@@ -54,7 +54,7 @@ class MyApp extends StatelessWidget {
       routes: {
         WelcomScreen.welcomScreenRout: (context) => const WelcomScreen(),
         SinIn.sinInScreenRout: (context) => const SinIn(),
-        '/create-admin': (context) => const TableDepartmentdata(),
+        '/create-admin': (context) => const CreateAdminScreen(),
         SignUp.signUpScreenRoute: (context) => const SignUp(),
         TableCollagedata.TableCollagedataRout: (context) =>
             const TableCollagedata(),
