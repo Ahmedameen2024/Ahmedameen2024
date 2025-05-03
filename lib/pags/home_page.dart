@@ -21,7 +21,7 @@ class Home_page extends StatefulWidget {
 class _Home_pageState extends State<Home_page> {
   @override
   Widget build(BuildContext context) {
-    // final GlobalKey<ScaffoldState> _globalKey = GlobalKey<ScaffoldState>();
+    final GlobalKey<ScaffoldState> _globalKey = GlobalKey<ScaffoldState>();
 
     // ignore: unused_local_variable
     var user = ModalRoute.of(context)!.settings.arguments;

@@ -13,8 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-class AddbuttonDepartments {
-  // ignore: non_constant_identifier_names
+class addbuttonDepartments {
   static void ShowCustomDilalog({
     required BuildContext context,
     required String title,

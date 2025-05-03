@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_application_10/pags/widget/Add_Admin.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -51,11 +52,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      routes: {
+      routes: <String, WidgetBuilder>{
         WelcomScreen.welcomScreenRout: (context) => const WelcomScreen(),
         SinIn.sinInScreenRout: (context) => const SinIn(),
-        '/create-admin': (context) => const CreateAdminScreen(),
         SignUp.signUpScreenRoute: (context) => const SignUp(),
+        '/create-admin': (context) => const Home_page(),
         TableCollagedata.TableCollagedataRout: (context) =>
             const TableCollagedata(),
         Home_page.home_pageControScreenRout: (context) => const Home_page(),
@@ -69,7 +70,7 @@ class MyApp extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasData && snapshot.data!.emailVerified) {
-            return CreateAdminScreen();
+            return Home_page();
           } else {
             return SinIn();
           }
@@ -78,6 +79,13 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+
 
 // class Test extends StatefulWidget {
   // const Test({Key? key}) : super(key: key);

@@ -48,7 +48,7 @@ class _TableDepartmentdataState extends State<TableDepartmentdata> {
                       ),
                     );
                   } else {
-                    AddbuttonDepartments.ShowCustomDilalog(
+                    addbuttonDepartments.ShowCustomDilalog(
                       context: context,
                       title: 'Add Department',
                       controller: TextEditingController(),

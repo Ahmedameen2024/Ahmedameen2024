@@ -289,9 +289,9 @@ class _CreateAdminScreenState extends State<CreateAdminScreen> {
                               .doc(uid)
                               .set({
                             'uid': uid,
-                            'collegeId': _userType == 'CollageAdmain'
-                                ? collageIdForAdmin
-                                : selectedCollegeId,
+                            // 'collegeId': _userType == 'CollageAdmain'
+                            //     ? collageIdForAdmin
+                            //     : selectedCollegeId,
                             'typeId': selectedTypeId,
                             'departments': selectedDepartmentIds,
                             'createdAt': FieldValue.serverTimestamp(),
